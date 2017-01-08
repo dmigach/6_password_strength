@@ -4,12 +4,17 @@ import re
 import getpass
 
 
-def password_check(password):
+def check_password_length(password):
     strength = 0
     if len(password) >= 8:
         strength += 2
     if len(password) >= 12:
         strength += 2
+    return strength
+
+
+def password_check(password):
+    strength = check_password_length(password)
     if not password.isnumeric():
         if not password.islower() and not password.isupper():
             strength += 2
@@ -22,6 +27,7 @@ def password_check(password):
 
 def load_blacklist(file_path):
     if not os.path.exists(file_path):
+        print('Wrong blacklist file path\n')
         return None
     with open(file_path, 'r') as file_handler:
         return re.findall(r'[\w]+', file_handler.read())
@@ -54,7 +60,7 @@ if __name__ == '__main__':
             print('Evaluation is not complete because we could not verify '
                   'the existence of the password in black lists.\n')
         else:
-            print('Your password is {}in the blacklist'.format(
+            print('Your password is {}in the blacklist.'.format(
                 'not ' * (not blacklist_check_result)))
         print('Password strength is {}/10.'.format(password_strength))
     else:
