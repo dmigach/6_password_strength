@@ -22,7 +22,6 @@ def password_check(password):
 
 def load_blacklist(file_path):
     if not os.path.exists(file_path):
-        print('Wrong blacklist file path\n')
         return None
     with open(file_path, 'r') as file_handler:
         return re.findall(r'[\w]+', file_handler.read())
