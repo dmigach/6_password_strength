@@ -2,32 +2,26 @@ import string
 import os
 import re
 import getpass
-
-
-def check_password_length(password):
-    strength = 0
-    if len(password) >= 8:
-        strength += 2
-    if len(password) >= 12:
-        strength += 2
-    return strength
+import argparse
 
 
 def password_check(password):
-    strength = check_password_length(password)
-    if not password.isnumeric():
-        if not password.islower() and not password.isupper():
-            strength += 2
-        if any(char.isdigit() for char in password):
-            strength += 2
-    if any(char in string.punctuation for char in password):
-        strength += 2
+    strength = 0
+    list_of_conditions = [
+        len(password) >= 8,
+        len(password) >= 12,
+        not password.isnumeric() and
+        not password.islower() and not password.isupper(),
+        any(char.isdigit() for char in password),
+        any(char in string.punctuation for char in password)
+        ]
+    for condition in list_of_conditions:
+        strength += 2 * condition
     return strength
 
 
 def load_blacklist(file_path):
     if not os.path.exists(file_path):
-        print('Wrong blacklist file path\n')
         return None
     with open(file_path, 'r') as file_handler:
         return re.findall(r'[\w]+', file_handler.read())
@@ -43,8 +37,12 @@ def get_password_to_check():
 
 
 def get_path_to_blacklist():
-    return input('Type path to passwords blacklist, if you haven\'t one '
-                 'just don\'t type anything and press \'Enter\'.\n')
+    parser = argparse.ArgumentParser(
+        description='Evaluate password complexity')
+    parser.add_argument("blacklist", nargs='?', type=str,
+                        help="path to passwords blacklist")
+    args = parser.parse_args()
+    return args.blacklist if args.blacklist else ''
 
 
 if __name__ == '__main__':
@@ -52,6 +50,8 @@ if __name__ == '__main__':
     if password_to_check:
         path_to_blacklist = get_path_to_blacklist()
         black_list = load_blacklist(path_to_blacklist)
+        if black_list is None:
+            print('Wrong blacklist path\n')
         password_strength = password_check(password_to_check)
         blacklist_check_result = check_password_in_blacklist(password_to_check,
                                                              black_list)
@@ -60,8 +60,8 @@ if __name__ == '__main__':
             print('Evaluation is not complete because we could not verify '
                   'the existence of the password in black lists.\n')
         else:
-            print('Your password is {}in the blacklist.'.format(
+            print('Your password is {}in the blacklist.\n'.format(
                 'not ' * (not blacklist_check_result)))
-        print('Password strength is {}/10.'.format(password_strength))
+        print('Password strength is {}/10.\n'.format(password_strength))
     else:
         print('Since you haven\'t typed anything, there is nothing to check.')
