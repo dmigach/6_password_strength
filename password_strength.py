@@ -1,8 +1,9 @@
 import string
 import os
-import re
 import getpass
 import argparse
+
+TOP_SCORE = 10.0
 
 
 def password_check(password):
@@ -15,16 +16,17 @@ def password_check(password):
         any(char.isdigit() for char in password),
         any(char in string.punctuation for char in password)
         ]
+    condition_coefficient = TOP_SCORE / len(list_of_conditions)
     for condition in list_of_conditions:
-        strength += 2 * condition
-    return strength
+        strength += condition_coefficient * condition
+    return round(strength, 1)
 
 
 def load_blacklist(file_path):
     if not os.path.exists(file_path):
         return None
     with open(file_path, 'r') as file_handler:
-        return re.findall(r'[\w]+', file_handler.read())
+        return file_handler.read()
 
 
 def check_password_in_blacklist(password, blacklist):
@@ -62,6 +64,7 @@ if __name__ == '__main__':
         else:
             print('Your password is {}in the blacklist.\n'.format(
                 'not ' * (not blacklist_check_result)))
-        print('Password strength is {}/10.\n'.format(password_strength))
+        print('Password strength is {}/{}\n'.format(password_strength,
+                                                    TOP_SCORE))
     else:
         print('Since you haven\'t typed anything, there is nothing to check.')
